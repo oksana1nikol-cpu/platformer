@@ -48,21 +48,33 @@ let score = 0;
 
 let scoreText;
 
-function preload(){}
+function preload() {
 
-function create(){
+    this.load.image("hero", "assets/hero.png");
 
-    this.cameras.main.setBackgroundColor("#87CEEB");
+    this.load.image("background", "assets/background.png");
 
-    ground = this.add.rectangle(450,460,900,80,0x228B22);
 
-    this.physics.add.existing(ground,true);
 
-    player = this.add.rectangle(150,390,40,60,0xff0000);
+}
 
-    this.physics.add.existing(player);
 
-    player.body.setCollideWorldBounds(true);
+function create{
+const bg = this.add.image(450, 250, "background");
+bg.setDisplaySize(900, 500);
+player = this.physics.add.sprite(150, 390, "hero");
+
+player.setCollideWorldBounds(true);
+
+
+
+
+
+
+
+
+
+
 
     this.physics.add.collider(player,ground);
 
