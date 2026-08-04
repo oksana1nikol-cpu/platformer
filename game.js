@@ -60,7 +60,7 @@ function preload() {
 
 
 function create{
-const bg = this.add.image(450, 250, "background");
+const bg = this.add.image(450, 250, "https://i.postimg.cc/g2DnQMCw/Chat-GPT-Image-3-avg-2026-g-20-07-22.png");
 bg.setDisplaySize(900, 500);
 player = this.physics.add.sprite(150, 390, "hero");
 
@@ -140,4 +140,3 @@ function gameOver(){
 
     location.reload();
 
-}
