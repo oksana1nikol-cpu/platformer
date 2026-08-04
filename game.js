@@ -1,142 +1,375 @@
-const config = {
+// =========================
+// Hero
+// =========================
 
-    type: Phaser.AUTO,
+const hero = document.getElementById("hero");
 
-    width: 900,
+// =========================
+// Game window
+// =========================
 
-    height: 500,
+const game = document.getElementById("game");
 
-    parent: "game",
+// =========================
+// Buttons
+// =========================
 
-    physics: {
+const jumpButton = document.getElementById("jumpButton");
 
-        default: "arcade",
+const restartButton = document.getElementById("restartButton");
 
-        arcade: {
+// =========================
+// Score
+// =========================
 
-            gravity: {
+const scoreText = document.getElementById("score");
 
-                y: 900
+const finalScore = document.getElementById("finalScore");
 
-            }
+const gameOverWindow = document.getElementById("gameOver");
 
-        }
+// =========================
+// Hero physics
+// =========================
 
-    },
+let heroX = 150;
 
-    scene: {
+let heroY = 360;
 
-        preload,
+let velocityY = 0;
 
-        create,
+let velocityX = 0;
 
-        update
-
-    }
-
-};
-
-const game = new Phaser.Game(config);
-
-let player;
-
-let ground;
-
-let holdStart = 0;
+const gravity = 0.8;
 
 let score = 0;
 
-let scoreText;
+let gameOver = false;
 
-function preload() {
+// =========================
+// Jump charging
+// =========================
 
-    this.load.image("hero", "assets/hero.png");
+let holdStart = 0;
 
-    this.load.image("background", "assets/background.png");
+let charging = false;
 
+// =========================
+// Platforms
+// =========================
 
+let platforms = [];
 
-}
+createPlatform(0,450,300);
 
+createPlatform(430,450,260);
 
-function create{
-const bg = this.add.image(450, 250, "https://i.postimg.cc/g2DnQMCw/Chat-GPT-Image-3-avg-2026-g-20-07-22.png");
-bg.setDisplaySize(900, 500);
-player = this.physics.add.sprite(150, 390, "hero");
+createPlatform(820,450,250);
 
-player.setCollideWorldBounds(true);
+// =========================
+// Create one platform
+// =========================
 
+function createPlatform(x,y,width){
 
+    const platform=document.createElement("div");
 
+    platform.className="platform";
 
+    platform.style.left=x+"px";
 
+    platform.style.top=y+"px";
 
+    platform.style.width=width+"px";
 
+    game.appendChild(platform);
 
+    platforms.push({
 
+        x:x,
 
+        y:y,
 
-    this.physics.add.collider(player,ground);
+        width:width,
 
-    scoreText=this.add.text(20,20,"Score: 0",{
-
-        fontSize:"30px",
-
-        color:"#000"
-
-    });
-
-    const button=document.getElementById("jumpButton");
-
-    button.addEventListener("mousedown",()=>{
-
-        holdStart=Date.now();
-
-    });
-
-    button.addEventListener("mouseup",()=>{
-
-        let hold=Date.now()-holdStart;
-
-        jump(player,hold);
+        element:platform
 
     });
 
 }
 
-function update(){
+// =========================
+// Hold button
+// =========================
 
-    if(player.x>850){
+jumpButton.addEventListener("mousedown",()=>{
 
-        player.x=150;
+    charging=true;
+
+    holdStart=Date.now();
+
+});
+
+jumpButton.addEventListener("mouseup",()=>{
+
+    if(gameOver) return;
+
+    charging=false;
+
+    let hold=Date.now()-holdStart;
+
+    if(hold>1000){
+
+        hold=1000;
+
+    }
+
+    velocityY=-14-(hold/100);
+
+    velocityX=4+(hold/250);
+
+});
+
+// Mobile
+
+jumpButton.addEventListener("touchstart",(e)=>{
+
+    e.preventDefault();
+
+    charging=true;
+
+    holdStart=Date.now();
+
+});
+
+jumpButton.addEventListener("touchend",(e)=>{
+
+    e.preventDefault();
+
+    if(gameOver) return;
+
+    charging=false;
+
+    let hold=Date.now()-holdStart;
+
+    if(hold>1000){
+
+        hold=1000;
+
+    }
+
+    velocityY=-14-(hold/100);
+
+    velocityX=4+(hold/250);
+
+});
+// =========================
+// Main Game Loop
+// =========================
+
+function update() {
+
+    if (gameOver) return;
+
+    // Gravity
+    velocityY += gravity;
+
+    // Move hero
+    heroX += velocityX;
+    heroY += velocityY;
+
+    // Friction (slow horizontal movement)
+    velocityX *= 0.99;
+
+    // Collision with platforms
+    let onGround = false;
+
+    platforms.forEach(platform => {
+
+        if (
+            heroX + 60 > platform.x &&
+            heroX < platform.x + platform.width &&
+            heroY + 70 >= platform.y &&
+            heroY + 70 <= platform.y + 20 &&
+            velocityY >= 0
+        ) {
+
+            heroY = platform.y - 70;
+            velocityY = 0;
+            onGround = true;
+
+        }
+
+    });
+
+    // Fell into a gap
+    if (heroY > 600) {
+
+        endGame();
+
+    }
+
+    // Move platforms when hero reaches center
+    if (heroX > 500) {
+
+        let move = heroX - 500;
+
+        heroX = 500;
+
+        platforms.forEach(platform => {
+
+            platform.x -= move;
+            platform.element.style.left = platform.x + "px";
+
+        });
+
+    }
+
+    // Remove old platforms
+    while (platforms.length > 0 && platforms[0].x + platforms[0].width < 0) {
+
+        platforms[0].element.remove();
+
+        platforms.shift();
 
         score++;
 
-        scoreText.setText("Score: "+score);
+        scoreText.innerHTML = "Score: " + score;
+
+        createNextPlatform();
 
     }
 
-    if(player.y>520){
+    // Draw hero
+    hero.style.left = heroX + "px";
+    hero.style.top = heroY + "px";
 
-        gameOver();
+    requestAnimationFrame(update);
+
+}
+
+requestAnimationFrame(update);
+
+
+// =========================
+// Generate Next Platform
+// =========================
+
+
+function createNextPlatform() {
+
+    let last = platforms[platforms.length - 1];
+
+    // Случайная ширина платформы
+    let width = 180 + Math.random() * 180;
+
+    // Случайная ширина пропасти
+    let gap = 100 + Math.random() * 170;
+
+    // Иногда делаем сложнее
+    if (Math.random() > 0.7) {
+
+        gap += 60;
 
     }
 
+    createPlatform(
+
+        last.x + last.width + gap,
+
+        450,
+
+        width
+
+    );
+
 }
 
-function jump(player,hold){
 
-    let power=Math.min(hold,1000);
+// =========================
+// Game Over
+// =========================
 
-    player.body.setVelocityY(-350-power*0.8);
+function endGame() {
 
-    player.body.setVelocityX(220+power*0.5);
+    gameOver = true;
+
+    gameOverWindow.style.display = "flex";
+
+    finalScore.innerHTML = "Score: " + score;
 
 }
 
-function gameOver(){
 
-    alert("Game Over\nScore: "+score);
+// =========================
+// Restart
+// =========================
+
+restartButton.onclick = function () {
 
     location.reload();
 
+}
+// =========================
+// Improve Hero Animation
+// =========================
+
+setInterval(() => {
+
+    if (gameOver) return;
+
+    // Поворачиваем героя по направлению прыжка
+    if (velocityX > 0) {
+
+        hero.style.transform = "scaleX(1)";
+
+    }
+
+    // Небольшой наклон во время полета
+    if (velocityY < -2) {
+
+        hero.style.rotate = "-8deg";
+
+    }
+    else if (velocityY > 3) {
+
+        hero.style.rotate = "8deg";
+
+    }
+    else {
+
+        hero.style.rotate = "0deg";
+
+    }
+
+}, 16);
+
+
+// =========================
+// Limit Hero Speed
+// =========================
+
+setInterval(() => {
+
+    if (velocityX > 10)
+        velocityX = 10;
+
+    if (velocityY > 20)
+        velocityY = 20;
+
+},16);
+
+
+// =========================
+// Prevent Hero Leaving Screen
+// =========================
+
+setInterval(() => {
+
+    if(heroX<0){
+
+        heroX=0;
+
+    }
+
+},16);
