@@ -3,22 +3,61 @@
 <head>
 
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Jump Game</title>
 
     <link rel="stylesheet" href="style.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
-
 </head>
 <body>
 
-<div id="game"></div>
+<div id="game">
+
+    <!-- Background -->
+    <img
+            id="background"
+            src="https://i.postimg.cc/g2DnQMCw/Chat-GPT-Image-3-avg-2026-g-20-07-22.png"
+            alt="Background">
+
+    <!-- Score -->
+    <div id="score">
+        Score: 0
+    </div>
+
+    <!-- Hero -->
+    <img
+            id="hero"
+            src="https://i.postimg.cc/L8qb07YY/Chat-GPT-Image-3-avg-2026-g-20-07-30-removebg-preview.png"
+            alt="Hero">
+
+</div>
+
+<!-- Jump button -->
 
 <button id="jumpButton">
+
     HOLD TO JUMP
+
 </button>
+
+<!-- Game Over -->
+
+<div id="gameOver">
+
+    <h1>GAME OVER</h1>
+
+    <p id="finalScore"></p>
+
+    <button id="restartButton">
+
+        Restart
+
+    </button>
+
+</div>
 
 <script src="game.js"></script>
 
 </body>
-</html>`
+</html>
